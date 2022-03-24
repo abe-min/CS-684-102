@@ -1,0 +1,33 @@
+{% extends "users/base.html" %}
+{% block title %} Home Page {% endblock title%}
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome, {{user.username.title|default:'Guest'}}</h1>
+        <p class="lead">
+            Welcome to the <b>Mind Benders News Feed App</b> 
+        </p>
+        
+        <hr class="my-4">
+        <p class="lead">
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary btn-lg" href="{% url 'logout' %}" role="button">Logout</a>
+            {% else %}
+                <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Sign in</a>
+                
+            {% endif %}
+            
+        </p>
+    </div>
+    <a class="btn btn-primary btn-sm" onClick="window.location.reload();" role="button" style="float: right;">Refresh Page</a>
+    <body>
+        {% for new, des, i in mylist %}
+                    <h1>Headline:</h1> {{ new }}
+                    {{ value|linebreaks }}
+                    <img src="{{ i }}" alt="">
+                    <h6>Article:</h6>{{ des }}
+                    {{ value|linebreaks }}
+                    <hr syle="width:10px;">
+            {% endfor %}
+   
+</body>
+{% endblock content %}
