@@ -1,0 +1,57 @@
+{% extends "users/base.html" %}
+{% block title %} Home Page {% endblock title%}
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome, {{user.username.title|default:'Guest'}}</h1>
+        <p class="lead">
+            Welcome to the <b>Mind Benders News Feed App</b> 
+        </p>
+        
+        <hr class="my-4">
+        <p class="lead">
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary btn-lg" href="{% url 'logout' %}" role="button">Logout</a>
+            {% else %}
+                <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Sign in</a>
+                
+            {% endif %}
+            <a href="/" class="nav-item nav-link" style="float: right;"> Refresh </a>
+        </p>
+        <div class="container">
+            <p></p>
+            <a href="/" class="nav-item nav-link" style="float: left;"> Home </a>
+            <a href="/general" class="nav-item nav-link" style="float: left;"> General </a>
+            <a href="/business" class="nav-item nav-link" style="float: left;"> Business </a>
+            <a href="/entertainment" class="nav-item nav-link" style="float: left;"> Entertainment </a>
+            <a href="/health" class="nav-item nav-link" style="float: left;"> Health </a>
+            <a href="/science" class="nav-item nav-link" style="float: left;"> Science </a>
+            <a href="/sport" class="nav-item nav-link" style="float: left;"> Sports </a>
+            <a href="/technology" class="nav-item nav-link" style="float: left;"> Technology </a>
+        </div>
+    </div>
+
+    
+
+    <div class="container">
+       
+        {% for new, des, i in mylist %}
+                    <h2>{{ new }}</h2>
+                    {{ value|linebreaks }}
+                   
+                    <h6>{{ des }}</h6>
+                    {{ value|linebreaks }}
+                    <hr syle="width:10px;">
+        {% endfor %}
+        
+   <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+              <li class="page-item"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">3</a></li>
+              <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+          </nav>
+
+</div>
+{% endblock content %}
