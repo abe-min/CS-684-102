@@ -1,6 +1,6 @@
 ﻿# Sprint 4: manual regression test cases
 
-## The following manual test cases are executed every time a new feature is added. Please see *Sprint 4 Test Plan* for full test plan 
+## The following manual test cases are executed every time a new feature is added. Please see [Sprint 4 Test Plan](Sprint-4-Test-Plan.md) for full test plan 
 
 
 |<p>Test </p><p>Case ID</p>|Description|Test Steps|Pre-requisites|Author|Test Method |

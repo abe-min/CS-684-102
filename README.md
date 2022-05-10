@@ -3,6 +3,6 @@
 
 ### [Sprint 4 Test Plan](Sprint-4-Test-Plan.md)
 
-### [Sprint 4 Test Cases](Sprint-4-Test-Cases.md)
+### [Sprint 4 Test Cases](Sprint-4-Test-cases.md)
 
 ### [Sprint 4 Test Report](Sprint-4-Test-Report.md)
