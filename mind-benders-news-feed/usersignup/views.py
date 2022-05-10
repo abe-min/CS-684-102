@@ -1,81 +1,121 @@
-from django.shortcuts import render
-from .forms import UserForm,UserProfileInfoForm
-
-from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
+from unicodedata import category
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views import View
 from django.contrib.auth.decorators import login_required
+from newsapi import NewsApiClient
 
-def index(request):
-    return render(request,'usersignup/index.html')
+from .forms import RegisterForm, LoginForm, UpdateProfileForm
+
+#news api view
+def home(request):
+    newsapi = NewsApiClient(api_key ='8512df4f49b74b3bbbf5745f9d59d5ba')
+    top = newsapi.get_top_headlines(category ='general')
+
+    l = top['articles']
+    desc =[]
+    news =[]
+    img =[]
+
+    for i in range(len(l)):
+        f = l[i]
+        news.append(f['title'])
+        desc.append(f['description'])
+        img.append(f['urlToImage'])
+    mylist = zip(news, desc, img)
+    return render(request, 'users/home.html', context ={"mylist":mylist})
+
+
+class RegisterView(View):
+    form_class = RegisterForm
+    initial = {'key': 'value'}
+    template_name = 'users/register.html'
+
+    def dispatch(self, request, *args, **kwargs):
+
+        if request.user.is_authenticated:
+            return redirect(to='/')
+
+        return super(RegisterView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}')
+
+            return redirect(to='login')
+
+        return render(request, self.template_name, {'form': form})
+
+
+# Remember me functionality
+class CustomLoginView(LoginView):
+    form_class = LoginForm
+
+    def form_valid(self, form):
+        remember_me = form.cleaned_data.get('remember_me')
+
+        if not remember_me:
+
+            self.request.session.set_expiry(0)
+
+
+            self.request.session.modified = True
+
+
+        return super(CustomLoginView, self).form_valid(form)
+
 
 @login_required
-def special(request):
-    return HttpResponse("You are logged in. Nice!")
-
-
-#Logout API
-@login_required
-def user_logout(request):
-    logout(request)
-    return HttpResponseRedirect(reverse('index'))
-    #return HttpResponse(status=[200])
-
-
-
-#Register API
-def register(request):
-    registered = False
+def profile(request):
     if request.method == 'POST':
-        user_form = UserForm(data=request.POST)
-        profile_form = UserProfileInfoForm(data=request.POST)
-        if user_form.is_valid() and profile_form.is_valid():
-            user = user_form.save()
-            user.set_password(user.password)
-            user.save()
-            profile = profile_form.save(commit=False)
-            profile.user = user
-            if 'profile_pic' in request.FILES:
-                print('found it')
-                profile.profile_pic = request.FILES['profile_pic']
-            profile.save()
-            registered = True
-            #return HttpResponse(status=[200])
-        else:
-            print(user_form.errors,profile_form.errors)
-            #return HttpResponse(status=[401])
-    else:
-        user_form = UserForm()
-        profile_form = UserProfileInfoForm()
+        profile_form = UpdateProfileForm(request.POST, request.FILES, instance=request.user.profile)
 
-    return render(request,'usersignup/registration.html',
-                          {'user_form':user_form,
-                           'profile_form':profile_form,
-                           'registered':registered})
-
-
-
-#Login API
-def user_login(request):
-
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        user = authenticate(username=username, password=password)
-
-        if user:
-            if user.is_active:
-                login(request,user)
-                return HttpResponseRedirect(reverse('index'))
-                #return HttpResponse(status=[200])
-            else:
-                return HttpResponse("Your account is not active.")
-        else:
-            print("Someone tried to login and failed.")
-            print("They used username: {} and password: {}".format(username,password))
-            return HttpResponse("Invalid login details supplied.")
-            #return HttpResponse(status=[401])
+        if profile_form.is_valid():
+            profile_form.save()
+            messages.success(request, 'Your Settings have been saved successfully')
+            return redirect(to='users-profile')
 
     else:
-        return render(request, 'usersignup/login.html', {})
+        profile_form = UpdateProfileForm(instance=request.user.profile)
+    return render(request, 'users/profile.html', {'profile_form': profile_form})
+
+
+
+
+
+
+
+
+
+
+
+
+#To be implemented in a later sprint
+
+class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    subject_template_name = 'users/password_reset_subject'
+    success_message = "We've emailed you instructions for setting your password, " \
+                      "if an account exists with the email you entered. You should receive them shortly." \
+                      " If you don't receive an email, " \
+                      "please make sure you've entered the address you registered with, and check your spam folder."
+    success_url = reverse_lazy('users-home')
+
+
+class ChangePasswordView(SuccessMessageMixin, PasswordChangeView):
+    template_name = 'users/change_password.html'
+    success_message = "Successfully Changed Your Password"
+    success_url = reverse_lazy('users-home')
